@@ -1,0 +1,5 @@
+.env
+articles.json
+results.csv
+__pycache__/
+.DS_Store

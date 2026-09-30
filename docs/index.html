@@ -1,0 +1,387 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>부스터스 뉴스봇 제작기</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&family=Gowun+Batang:wght@700&display=swap">
+<style>
+/* Layout: 강의 핸드아웃. 좌측 고정 목차(데스크톱) + 본문 단일 컬럼. 단계는 실제 순서라 번호가 정보다. */
+:root{
+  --bg:#f7f6f8; --paper:#ffffff; --ink:#1d1a22; --muted:#6b6573; --line:#e3dfe8;
+  --berry:#a3214f; --berry-soft:#f6e6ec; --screen:#1f1d24; --screen-ink:#e9e6ee; --screen-dim:#9a94a4;
+  --ok:#2f7d4f; --warn:#a86a12; --bad:#b3342f; --ok-bg:#e6f2ea; --warn-bg:#f8eedc; --bad-bg:#f7e3e2;
+  --f-display:"Gowun Batang",Georgia,serif;
+  --f-body:"IBM Plex Sans KR",system-ui,-apple-system,"Apple SD Gothic Neo",sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#141217; --paper:#1c1a20; --ink:#ece9f0; --muted:#a39dab; --line:#2f2c35;
+  --berry:#e2658f; --berry-soft:#3a1f2a; --screen:#0d0c10; --screen-ink:#e9e6ee; --screen-dim:#8a8494;
+  --ok:#6cc58f; --warn:#e0a54a; --bad:#ec7a73; --ok-bg:#16291e; --warn-bg:#2d2414; --bad-bg:#301b1a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#141217; --paper:#1c1a20; --ink:#ece9f0; --muted:#a39dab; --line:#2f2c35;
+  --berry:#e2658f; --berry-soft:#3a1f2a; --screen:#0d0c10; --screen-ink:#e9e6ee; --screen-dim:#8a8494;
+  --ok:#6cc58f; --warn:#e0a54a; --bad:#ec7a73; --ok-bg:#16291e; --warn-bg:#2d2414; --bad-bg:#301b1a; color-scheme:dark}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.7;padding-inline:20px}
+.wrap{max-width:1120px;margin:0 auto;display:grid;grid-template-columns:220px minmax(0,1fr);gap:48px;padding-block:48px 96px}
+@media (max-width:860px){.wrap{grid-template-columns:minmax(0,1fr);gap:24px;padding-block:28px 64px}nav.toc{display:none}}
+nav.toc{position:sticky;top:calc(env(safe-area-inset-top,0px) + 24px);align-self:start;font-size:13.5px;line-height:1.5}
+nav.toc p{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin:0 0 10px}
+nav.toc ol{list-style:none;margin:0;padding:0;display:grid;gap:2px}
+nav.toc a{display:grid;grid-template-columns:28px 1fr;color:var(--muted);text-decoration:none;padding:5px 8px;border-radius:6px}
+nav.toc a span{font-family:var(--f-mono);font-size:12px;color:var(--berry)}
+nav.toc a:hover,nav.toc a:focus-visible{background:var(--paper);color:var(--ink);outline:none}
+main{min-width:0}
+header.hero{padding-bottom:28px;border-bottom:1px solid var(--line);margin-bottom:40px}
+.eyebrow{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--berry);font-weight:500;margin:0 0 12px}
+h1{font-family:var(--f-display);font-size:clamp(30px,5vw,46px);line-height:1.2;margin:0 0 14px;text-wrap:balance;letter-spacing:-.01em}
+.lede{font-size:18px;color:var(--muted);max-width:62ch;margin:0}
+.meta{display:flex;flex-wrap:wrap;gap:8px;margin-top:20px}
+.chip{font-size:12.5px;padding:3px 10px;border:1px solid var(--line);border-radius:99px;color:var(--muted);background:var(--paper)}
+section{padding-block:8px 44px;scroll-margin-top:24px}
+h2{font-family:var(--f-display);font-size:28px;line-height:1.3;margin:0 0 6px;text-wrap:balance;display:flex;gap:14px;align-items:baseline}
+h2 .n{font-family:var(--f-mono);font-size:15px;color:var(--berry);font-weight:500;flex:none}
+.goal{color:var(--muted);margin:0 0 18px;max-width:65ch}
+h3{font-size:17px;margin:26px 0 8px}
+p,li{max-width:68ch}
+ol.steps{padding-left:0;list-style:none;counter-reset:s;display:grid;gap:10px;margin:14px 0}
+ol.steps>li{counter-increment:s;display:grid;grid-template-columns:30px minmax(0,1fr);gap:10px}
+ol.steps>li::before{content:counter(s);font-family:var(--f-mono);font-size:13px;width:24px;height:24px;border-radius:50%;background:var(--berry-soft);color:var(--berry);display:grid;place-items:center;margin-top:3px}
+code{font-family:var(--f-mono);font-size:.88em;background:var(--berry-soft);color:var(--ink);padding:1px 5px;border-radius:4px;overflow-wrap:anywhere}
+pre{font-family:var(--f-mono);font-size:13px;line-height:1.6;background:var(--paper);border:1px solid var(--line);border-radius:8px;padding:14px 16px;overflow-x:auto;margin:12px 0}
+pre code{background:none;padding:0;font-size:inherit}
+.note{border-left:3px solid var(--berry);background:var(--paper);padding:12px 16px;border-radius:0 8px 8px 0;margin:16px 0;font-size:15px}
+.note b{color:var(--berry)}
+.pit{background:var(--warn-bg);border-radius:8px;padding:12px 16px;margin:16px 0;font-size:15px}
+.pit b{color:var(--warn)}
+/* 재현 화면 (캡처 자리) */
+figure.shot{margin:18px 0;min-width:0}
+.win{background:var(--screen);color:var(--screen-ink);border-radius:10px;overflow:hidden;font-family:var(--f-mono);font-size:12.5px;line-height:1.65}
+.win .bar{display:flex;align-items:center;gap:6px;padding:8px 12px;background:rgba(255,255,255,.06);color:var(--screen-dim);font-size:11.5px}
+.win .bar i{width:9px;height:9px;border-radius:50%;background:rgba(255,255,255,.18);display:inline-block}
+.win .bar em{font-style:normal;margin-left:8px}
+.win .body{padding:12px 14px;overflow-x:auto;white-space:pre}
+.win .r{color:#ff8f86}.win .g{color:#86d9a3}.win .y{color:#f0c674}.win .d{color:var(--screen-dim)}.win .b{color:#f29bb8}
+figcaption{font-size:13px;color:var(--muted);margin-top:8px;display:flex;gap:8px;flex-wrap:wrap;align-items:baseline}
+figcaption .tag{font-size:11px;letter-spacing:.08em;text-transform:uppercase;border:1px dashed var(--muted);border-radius:4px;padding:0 6px}
+.table-wrap{overflow-x:auto;margin:14px 0;border:1px solid var(--line);border-radius:8px;background:var(--paper)}
+table{border-collapse:collapse;width:100%;font-size:14px;min-width:640px}
+th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:500}
+tr:last-child td{border-bottom:0}
+td code{white-space:nowrap}
+.sev{font-size:11.5px;padding:1px 8px;border-radius:99px;white-space:nowrap}
+.sev.bad{background:var(--bad-bg);color:var(--bad)}.sev.warn{background:var(--warn-bg);color:var(--warn)}.sev.ok{background:var(--ok-bg);color:var(--ok)}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;margin:14px 0}
+.card{background:var(--paper);border:1px solid var(--line);border-radius:8px;padding:14px 16px;min-width:0}
+.card h4{margin:0 0 4px;font-size:15px}
+.card p{margin:0;font-size:14px;color:var(--muted)}
+pre.mermaid{background:var(--paper);text-align:center}
+.slack{background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:14px 16px;font-size:14px;line-height:1.55}
+.slack .who{font-weight:700}.slack .t{color:var(--muted);font-size:12px;margin-left:6px}
+.slack h5{margin:10px 0 4px;font-size:14px}
+.slack .it{margin:6px 0 6px 2px}.slack .it a{color:#1d6fb8;font-weight:700;text-decoration:none}
+.slack .src{color:var(--muted);font-size:12.5px}
+.lbl{font-size:12px;padding:1px 6px;border-radius:4px;margin-right:4px}
+.lbl.r{background:var(--bad-bg);color:var(--bad)}.lbl.g{background:var(--ok-bg);color:var(--ok)}
+footer{border-top:1px solid var(--line);padding-top:20px;color:var(--muted);font-size:13.5px}
+@media (prefers-reduced-motion:no-preference){html{scroll-behavior:smooth}}
+</style>
+
+<style>body{margin:0}</style>
+</head>
+<body>
+<div class="wrap">
+<nav class="toc" aria-label="목차">
+  <p>강의 순서</p>
+  <ol>
+    <li><a href="#s0"><span>00</span>무엇을 만드나</a></li>
+    <li><a href="#s1"><span>01</span>준비물</a></li>
+    <li><a href="#s2"><span>02</span>레포 구조</a></li>
+    <li><a href="#s3"><span>03</span>시크릿 등록</a></li>
+    <li><a href="#s4"><span>04</span>워크플로 작성</a></li>
+    <li><a href="#s5"><span>05</span>키워드 설계</a></li>
+    <li><a href="#s6"><span>06</span>노이즈 줄이기</a></li>
+    <li><a href="#s7"><span>07</span>Slack 채널 연결</a></li>
+    <li><a href="#s8"><span>08</span>AI 판단 붙이기</a></li>
+    <li><a href="#s9"><span>09</span>스케줄 운영</a></li>
+    <li><a href="#s10"><span>10</span>트러블슈팅 사례집</a></li>
+    <li><a href="#s11"><span>11</span>정리 · AX 포인트</a></li>
+  </ol>
+</nav>
+
+<main>
+<header class="hero">
+  <p class="eyebrow">AX 실습 강의 · 비개발자 마케터용</p>
+  <h1>매일 아침 9시, 경쟁사 뉴스가 Slack으로 온다</h1>
+  <p class="lede">부스터스 PR팀이 Claude Code와 함께 만든 뉴스 클리핑 봇의 제작 과정입니다. 네이버·Google News에서 이퀄베리와 경쟁사 기사를 모아, 노이즈를 거르고, 두 Slack 채널로 보냅니다. 코드는 AI가 쓰고 사람은 무엇을 원하는지와 무엇이 틀렸는지를 말합니다.</p>
+  <div class="meta">
+    <span class="chip">GitHub Actions</span><span class="chip">Python</span><span class="chip">Naver News API</span><span class="chip">Google News RSS</span><span class="chip">Slack Webhook</span><span class="chip">서버 비용 0원</span>
+  </div>
+</header>
+
+<section id="s0">
+  <h2><span class="n">00</span>무엇을 만드나</h2>
+  <p class="goal">전체 흐름을 먼저 보여주고 시작합니다. 수강생이 지금 어느 단계에 있는지 이 그림으로 돌아옵니다.</p>
+  <pre class="mermaid">
+flowchart LR
+  T["⏰ 매일 09:00 KST<br/>트리거"] --> C["수집<br/>네이버 · Google KR/US · 매체 RSS"]
+  C --> F["필터<br/>24시간 · 제외어 · 차단 도메인"]
+  F --> D["중복 제거<br/>제목 유사도 · 매체 등급"]
+  D --> J["AI 판단 (선택)<br/>유리/불리 라벨"]
+  J --> S1["#pr_research"]
+  J --> S2["팀쿠키 협업채널"]
+  </pre>
+  <div class="grid2">
+    <div class="card"><h4>사람이 한 일</h4><p>키워드 목록 작성, 필요한 결과 설명, 오류 화면 캡처해서 보여주기, GitHub·Slack 설정 클릭</p></div>
+    <div class="card"><h4>AI(Claude Code)가 한 일</h4><p>파이썬 코드 작성·수정, 로그 해석, 원인 추적, 설정 절차 안내, 수정본 문법 검사</p></div>
+  </div>
+</section>
+
+<section id="s1">
+  <h2><span class="n">01</span>준비물</h2>
+  <p class="goal">계정과 키 4종. 모두 무료로 시작할 수 있습니다.</p>
+  <div class="table-wrap"><table>
+    <thead><tr><th>항목</th><th>어디서</th><th>무엇을 받아오나</th><th>필수</th></tr></thead>
+    <tbody>
+      <tr><td>GitHub 계정·비공개 레포</td><td>github.com</td><td>코드 저장소 + 매일 자동 실행(Actions)</td><td><span class="sev ok">필수</span></td></tr>
+      <tr><td>네이버 검색 API</td><td>developers.naver.com</td><td><code>Client ID</code>, <code>Client Secret</code></td><td><span class="sev ok">필수</span></td></tr>
+      <tr><td>Slack 앱 (Incoming Webhook)</td><td>api.slack.com/apps</td><td>채널별 Webhook URL</td><td><span class="sev ok">필수</span></td></tr>
+      <tr><td>AI 판단 API 키</td><td>TypeSafe 등</td><td>기사 유리/불리 판단용 키</td><td><span class="sev warn">선택</span></td></tr>
+    </tbody>
+  </table></div>
+  <div class="note"><b>강의 포인트</b> · 키는 코드 파일에 절대 적지 않습니다. 03단계의 GitHub Secrets에만 넣습니다.</div>
+</section>
+
+<section id="s2">
+  <h2><span class="n">02</span>레포 구조</h2>
+  <p class="goal">파일은 4개뿐입니다. 위치가 틀리면 아무것도 동작하지 않습니다.</p>
+  <figure class="shot">
+    <div class="win"><div class="bar"><i></i><i></i><i></i><em>boosters-news-briefing · main</em></div><div class="body"><span class="b">.github/workflows/</span>briefing.yml   <span class="d">← 언제·어떻게 실행할지</span>
+boosters_news_briefing.py        <span class="d">← 수집·필터·전송 본체</span>
+keywords.yml                     <span class="d">← 키워드·카테고리 설정 (마케터가 주로 수정)</span>
+jev_news_judge.py                <span class="d">← AI 판단 모듈 (선택)</span></div></div>
+    <figcaption><span class="tag">캡처 자리</span>GitHub 레포 Code 탭 파일 목록 (.github/workflows 폴더가 보이는 상태)</figcaption>
+  </figure>
+  <div class="pit"><b>함정</b> · <code>briefing.yml</code>을 그냥 업로드하면 레포 맨 위(루트)에 올라가고 Actions가 인식하지 못합니다. 반드시 <b>Add file → Create new file</b>에서 파일명에 <code>.github/workflows/briefing.yml</code>을 통째로 입력하세요. <code>/</code>를 칠 때마다 폴더가 생깁니다.</div>
+</section>
+
+<section id="s3">
+  <h2><span class="n">03</span>시크릿 등록</h2>
+  <p class="goal">키를 안전하게 저장하는 곳. 한 번 넣으면 값은 다시 볼 수 없고 덮어쓰기만 됩니다.</p>
+  <ol class="steps">
+    <li><div>레포 상단 탭 맨 오른쪽 <b>Settings</b> (한국어 화면은 <b>설정</b>)</div></li>
+    <li><div>왼쪽 <b>Security and quality</b> 아래 <b>Secrets and variables → Actions</b><br><span style="color:var(--muted);font-size:14px">바로가기: <code>github.com/계정/레포/settings/secrets/actions</code></span></div></li>
+    <li><div><b>New repository secret</b>으로 아래 이름 그대로 하나씩 등록</div></li>
+  </ol>
+  <pre><code>NAVER_CLIENT_ID
+NAVER_CLIENT_SECRET
+SLACK_WEBHOOK_URL       # 채널 1 (#pr_research)
+SLACK_WEBHOOK_URL_2     # 채널 2 (협업채널)
+TYPESAFE_API_KEY        # AI 판단 (선택)</code></pre>
+  <div class="note"><b>계정 설정과 헷갈리지 않기</b> · 프로필 사진 → Settings는 <b>계정</b> 설정입니다. 시크릿은 <b>레포</b> Settings에 있습니다.</div>
+</section>
+
+<section id="s4">
+  <h2><span class="n">04</span>워크플로 작성</h2>
+  <p class="goal">"어떤 컴퓨터에서, 무엇을 설치하고, 무슨 명령을 실행할지"를 적는 파일입니다.</p>
+  <pre><code>name: Boosters 뉴스 브리핑
+on:
+  schedule:
+    - cron: '0 0 * * *'       # 매일 09:00 KST (UTC 00:00)
+  workflow_dispatch:          # 수동 실행 버튼 + 외부 크론 호출용
+
+jobs:
+  briefing:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - run: pip install -r requirements.txt
+      - name: 뉴스 브리핑 실행
+        env:
+          NAVER_CLIENT_ID: ${{ secrets.NAVER_CLIENT_ID }}
+          NAVER_CLIENT_SECRET: ${{ secrets.NAVER_CLIENT_SECRET }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_WEBHOOK_URL_2: ${{ secrets.SLACK_WEBHOOK_URL_2 }}
+          TYPESAFE_API_KEY: ${{ secrets.TYPESAFE_API_KEY }}
+          PYTHONIOENCODING: utf-8
+          PYTHONUTF8: 1        # 한글·특수문자 인코딩 오류 방지
+        run: python boosters_news_briefing.py</code></pre>
+  <p>커밋 후 <b>Actions 탭 → Boosters 뉴스 브리핑 → Run workflow</b>로 첫 테스트를 합니다.</p>
+  <figure class="shot">
+    <div class="win"><div class="bar"><i></i><i></i><i></i><em>Actions · briefing · 뉴스 브리핑 실행</em></div><div class="body">=== Boosters 뉴스 브리핑 시작: 2026-09-15 09:00:41+09:00 ===
+<span class="d">[RSS 오래된 기사 제외] 4월 화장품 수출, 한 달 만에 역대 최고…</span>
+<span class="d">[중복 제거] 신세계라이브쇼핑, 상품부터 달라졌다…</span>
+[수집] 🌐 글로벌 경쟁사 (영미권): 10건
+[수집] 🔍 심층 분석 &amp; 트렌드: 13건
+<span class="g">[Slack 전송 완료] 채널1 파트1 200</span>
+<span class="g">[Slack 전송 완료] 채널2 파트1 200</span>
+=== 완료 ===</div></div>
+    <figcaption><span class="tag">캡처 자리</span>성공한 실행 로그. 로그 읽는 법을 여기서 가르칩니다: 대괄호 태그가 "무슨 일이 일어났는지"입니다.</figcaption>
+  </figure>
+</section>
+
+<section id="s5">
+  <h2><span class="n">05</span>키워드 설계</h2>
+  <p class="goal">마케터가 가장 자주 만지는 파일. 코드를 몰라도 여기만 고치면 수집 대상이 바뀝니다.</p>
+  <pre><code>categories:
+  global_eqqualberry:
+    display: "🇺🇸 Eqqualberry 글로벌 PR"
+    lang: en              # 미국 Google News(영어)만 검색
+    always_show: true     # 0건이어도 "오늘 감지된 기사 없음" 표시
+    max_articles: 10
+    keywords: ["eqqualberry", "Eqqualberry skincare"]
+
+  global_competitors:
+    display: "🌐 글로벌 경쟁사 (영미권)"
+    lang: en
+    competitor: true      # AI 판단 대상
+    keywords: ["medicube", "COSRX", "Beauty of Joseon", "\"d'Alba\" skincare", ...]</code></pre>
+  <div class="grid2">
+    <div class="card"><h4>메인 키워드</h4><p>우리 브랜드. 매일 "있다/없다"를 확인해야 하므로 <code>always_show</code></p></div>
+    <div class="card"><h4>경쟁사 키워드</h4><p>브랜드명 15개. 흔한 단어와 겹치면 맥락어를 붙임</p></div>
+    <div class="card"><h4>심층·트렌드 키워드</h4><p><code>Ulta Beauty</code>, <code>PDRN skincare</code>처럼 뷰티 맥락을 명시</p></div>
+  </div>
+  <div class="note"><b>실습 과제</b> · 자기 회사 브랜드 1개, 경쟁사 3개, 트렌드 키워드 2개로 카테고리를 만들어 보세요.</div>
+</section>
+
+<section id="s6">
+  <h2><span class="n">06</span>노이즈 줄이기</h2>
+  <p class="goal">"왜 이 기사가 왔지?"를 추적해 규칙으로 바꾸는 단계. 봇의 품질은 여기서 결정됩니다.</p>
+  <h3>사례 A · 트러플 축제 기사가 경쟁사로 잡혔다</h3>
+  <p>원인은 키워드 <code>d'Alba</code>. 검색엔진이 아포스트로피를 끊어 이탈리아 <b>알바(Alba)</b> 지역 기사를 가져왔습니다.</p>
+  <figure class="shot">
+    <div class="win"><div class="bar"><i></i><i></i><i></i><em>키워드별 검색 결과 비교</em></div><div class="body"><span class="r">[d'Alba] 100건</span>
+  - World Market of the White Truffle of Alba
+  - Mildred L. D'Alba Obituary (2026)
+
+<span class="g">["d'Alba" skincare] 46건</span>
+  - Olivia Culpo's makeup artist calls this viral product her secret
+  - The 11 Best Korean Skincare Brands Worth Your Money</div></div>
+    <figcaption><span class="tag">캡처 자리</span>Slack에 온 엉뚱한 기사 + 수정 전후 비교</figcaption>
+  </figure>
+  <h3>사례 B · 종목 추천 리스트가 경쟁사 기사로 왔다</h3>
+  <p>"[리스트] MVP 상위 20선"류 기사. 기존 제외어(주가·주식)가 제목에 없어서 통과했습니다. 두 겹으로 막았습니다.</p>
+  <pre><code>EXCLUDE_KEYWORDS += ["종목", "밸류에이션", "목표주가", "[리스트]", "상위 20선", ...]
+EXCLUDE_DOMAINS  = ["itooza.com", "thinkpool.com", "paxnet.co.kr", ...]   # 종목 포털 통째로 차단</code></pre>
+  <div class="note"><b>강의 포인트</b> · 엉뚱한 기사를 발견하면 <b>링크만 AI에게 주세요</b>. 어느 키워드가 끌어왔는지 재현해서 찾아줍니다. 사람이 추측할 필요가 없습니다.</div>
+</section>
+
+<section id="s7">
+  <h2><span class="n">07</span>Slack 채널 연결</h2>
+  <p class="goal">Webhook URL은 채널 하나당 하나입니다. 채널을 늘리려면 URL도 늘립니다.</p>
+  <ol class="steps">
+    <li><div>api.slack.com/apps → 봇 앱 → <b>Incoming Webhooks</b> → <b>Add New Webhook to Workspace</b></div></li>
+    <li><div>채널 선택 → 허용 → URL 복사 → 03단계의 <code>SLACK_WEBHOOK_URL_2</code>에 저장</div></li>
+    <li><div><code>keywords.yml</code>의 <code>channel2_categories</code>로 채널 2에 보낼 카테고리만 고르기 (비우면 전체)</div></li>
+  </ol>
+  <div class="pit"><b>함정 · "본인의 팀이 소유한 채널을 선택하세요"</b><br>외부 회사가 만든 Slack Connect 채널에는 우리 쪽 웹훅을 붙일 수 없습니다. 해결: <b>우리 워크스페이스에서 새 채널을 만들고</b> 외부 담당자를 초대합니다. 소유권이 우리에게 남아 웹훅이 바로 붙습니다. 초대할 때 "여러 결과 일치"가 뜨면 칩을 눌러 <b>기존 외부 조직 사용자</b>를 고르세요. 게스트 초대가 아닙니다.</div>
+  <figure class="shot">
+    <div class="slack">
+      <span class="who">Boosters 뉴스봇</span><span class="t">오전 9:00</span>
+      <h5>📰 Boosters 뉴스 브리핑 | 2026년 09월 22일 09:00</h5>
+      <h5>🌐 글로벌 경쟁사 (영미권)</h5>
+      <div class="it">• <span class="lbl r">🔴 불리·검토 필요</span><a href="#s7">COSRX has a $14 PDRN face mask thousands are buying</a><br><span class="src">NY Post · Mon, 21 Sep 2026</span></div>
+      <div class="it">• <span class="lbl g">🟢 유리·참고</span><a href="#s7">Torriden issues voluntary recall on sunscreen batch</a><br><span class="src">Allure · Mon, 21 Sep 2026</span></div>
+      <h5>🇺🇸 Eqqualberry 글로벌 PR</h5>
+      <div class="it src"><i>오늘 감지된 기사 없음</i></div>
+    </div>
+    <figcaption><span class="tag">예시 화면</span>완성된 Slack 메시지 모양. 기사 제목과 라벨은 설명용 예시입니다. 실제 채널 캡처로 교체하세요.</figcaption>
+  </figure>
+</section>
+
+<section id="s8">
+  <h2><span class="n">08</span>AI 판단 붙이기 (선택)</h2>
+  <p class="goal">경쟁사 기사가 "우리에게 유리한지 불리한지"를 AI가 라벨로 붙이고, 칼럼·기획기사는 뺍니다.</p>
+  <div class="grid2">
+    <div class="card"><h4>기사 유형</h4><p>단신 / 심층·기획·칼럼 / 광고성 / 기타 → 심층이면 제외</p></div>
+    <div class="card"><h4>방향 (0~2)</h4><p>이퀄베리 입장에서 불리·중립·유리. 경쟁사 호재 = 우리에겐 불리</p></div>
+    <div class="card"><h4>영향 (0~2)</h4><p>거의 없음 · 참고 · 즉시 검토</p></div>
+    <div class="card"><h4>리스크</h4><p>K-뷰티 평판 리스크 이슈 여부</p></div>
+  </div>
+  <h3>설계 원칙 세 가지</h3>
+  <ol class="steps">
+    <li><div><b>경쟁사 여부는 AI가 아니라 설정으로</b> 정합니다. <code>competitor: true</code> 카테고리만 AI를 부릅니다. 비용도 줄어듭니다.</div></li>
+    <li><div><b>확신도 0.6 미만은 "판단 보류"</b>. 유형이 불확실하면 빼지 않고 보냅니다. 놓치는 것보다 한 건 더 보는 게 낫습니다.</div></li>
+    <li><div><b>AI가 실패해도 뉴스는 나갑니다</b>. 키가 없으면 단계를 건너뛰고, 3번 연속 실패하면 호출을 멈추고 "❔ 판단 불가"로 표시합니다.</div></li>
+  </ol>
+  <div class="note"><b>검증</b> · 지난 기사 30~50건을 사람이 먼저 라벨링하고 <code>python jev_news_judge.py articles.json results.csv</code>로 AI 결과와 비교합니다. 맞는 비율을 보고 켤지 결정합니다.</div>
+</section>
+
+<section id="s9">
+  <h2><span class="n">09</span>스케줄 운영</h2>
+  <p class="goal">"매일 9시"는 생각보다 까다롭습니다. 실제로 하루 두 번 오는 사건이 있었습니다.</p>
+  <h3>사건 · 9시에 한 번, 11시 49분에 또 한 번</h3>
+  <div class="table-wrap"><table>
+    <thead><tr><th>실행 시각</th><th>표시</th><th>정체</th><th>조치</th></tr></thead>
+    <tbody>
+      <tr><td>09:00</td><td>Manually run</td><td>외부 크론 서비스가 <code>cron-job-boosters</code> 토큰으로 정시 호출</td><td><span class="sev ok">유지</span></td></tr>
+      <tr><td>11:30~11:49</td><td>Scheduled</td><td>워크플로 안의 <code>cron: '0 0 * * *'</code>. GitHub 자체 스케줄은 부하로 2~3시간 늦게 돔</td><td><span class="sev bad">삭제</span></td></tr>
+    </tbody>
+  </table></div>
+  <p>추적 경로: 레포 Settings → GitHub Apps 확인 → 프로필 → Settings → Developer settings → <b>Personal access tokens</b>에서 <code>workflow</code> 권한이 있고 "최근 사용"인 토큰 발견.</p>
+  <figure class="shot">
+    <div class="win"><div class="bar"><i></i><i></i><i></i><em>Personal access tokens (classic)</em></div><div class="body">ai-campaign           repo              Last used within the last week
+<span class="y">cron-job-boosters     repo, workflow    Last used within the last week   ← 범인</span>
+boosters-briefing-2   repo, workflow    Last used within the last 4 months
+boosters-briefing     repo              Never used</div></div>
+    <figcaption><span class="tag">캡처 자리</span>토큰 목록 화면 + Actions 실행 기록(09:00 Manually run / 11:49 Scheduled 반복)</figcaption>
+  </figure>
+  <div class="note"><b>강의 포인트</b> · GitHub의 <code>schedule</code>은 정시를 보장하지 않습니다. 정시가 중요하면 외부 크론(cron-job.org 등) + <code>workflow_dispatch</code> 조합을 씁니다. 그리고 cron은 UTC 기준입니다. <code>0 0 * * *</code> = 한국 오전 9시.</div>
+</section>
+
+<section id="s10">
+  <h2><span class="n">10</span>트러블슈팅 사례집</h2>
+  <p class="goal">실제로 겪은 오류를 순서대로 모았습니다. 오류 메시지 한 줄로 원인을 찾는 연습용입니다.</p>
+  <div class="table-wrap"><table>
+    <thead><tr><th>증상 (로그 한 줄)</th><th>원인</th><th>해결</th></tr></thead>
+    <tbody>
+      <tr><td><code>ModuleNotFoundError: feedparser</code></td><td>설치 목록 누락</td><td>워크플로 <code>pip install</code>에 추가</td></tr>
+      <tr><td>로그가 "모니터링 시작"으로 뜸</td><td>브리핑 파일 자리에 다른 스크립트 업로드</td><td>파일 내용 확인 후 교체</td></tr>
+      <tr><td>Slack에 "총 0건"</td><td>AI 응답이 잘려 JSON 파싱 실패 → 전부 낮은 점수</td><td>응답 길이 한도 상향, 실패 시 기본값 조정</td></tr>
+      <tr><td><code>SyntaxError: invalid character '"' (U+201C)</code></td><td>복사·붙여넣기로 곧은 따옴표가 곱슬따옴표로 바뀜</td><td>복붙 대신 <b>파일 자체를 업로드</b></td></tr>
+      <tr><td><code>'ascii' codec can't encode '”'</code></td><td>실행 환경 인코딩이 ASCII</td><td><code>PYTHONUTF8: 1</code>, <code>PYTHONIOENCODING: utf-8</code></td></tr>
+      <tr><td><code>404 · does not contain .github/workflows/briefing.yml</code></td><td>업로드 중 워크플로 파일 삭제됨</td><td>Create new file로 경로째 재생성</td></tr>
+      <tr><td><code>401 invalid x-api-key</code></td><td>AI API 키 오류</td><td>키 재발급, 또는 AI 단계 제거</td></tr>
+      <tr><td><code>Slack 400 Bad Request</code></td><td>Slack 메시지 블록 50개 초과</td><td>48개씩 나눠 전송</td></tr>
+      <tr><td><code>FileNotFoundError: 'keywords.yml'</code></td><td><code>keywords.yml</code> 대신 옛 <code>monitor.yml</code> 업로드</td><td>잘못 올린 파일 삭제, 로컬 옛 파일도 정리</td></tr>
+    </tbody>
+  </table></div>
+  <figure class="shot">
+    <div class="win"><div class="bar"><i></i><i></i><i></i><em>Actions · #213 · Failure</em></div><div class="body">=== Boosters 뉴스 브리핑 시작: 2026-09-15 09:00:41 ===
+  File "boosters_news_briefing.py", line 412, in main
+    config = load_keywords("keywords.yml")
+<span class="r">FileNotFoundError: [Errno 2] No such file or directory: 'keywords.yml'</span>
+<span class="r">Error: Process completed with exit code 1.</span></div></div>
+    <figcaption><span class="tag">캡처 자리</span>실패 로그 예시. 맨 아래 빨간 줄 바로 위가 진짜 원인이라는 것을 보여주기 좋습니다.</figcaption>
+  </figure>
+  <div class="note"><b>오류가 나면 이렇게</b> · ① Actions → 실패한 실행 → 빨간 X 단계 펼치기 ② 화면 캡처 ③ AI에게 "이 로그 원인이 뭐야?" 세 단계면 됩니다.</div>
+</section>
+
+<section id="s11">
+  <h2><span class="n">11</span>정리 · AX 포인트</h2>
+  <div class="grid2">
+    <div class="card"><h4>단순한 게 오래 간다</h4><p>AI 요약·점수 단계가 오류의 절반을 만들었습니다. 떼어내고 수집·전송만 남기니 안정됐고, AI는 나중에 선택 기능으로 다시 붙였습니다.</p></div>
+    <div class="card"><h4>실패해도 멈추지 않게</h4><p>부가 기능이 실패해도 핵심 결과물(아침 뉴스)은 반드시 나가도록 설계합니다.</p></div>
+    <div class="card"><h4>설정과 코드를 분리</h4><p>키워드는 <code>keywords.yml</code>에. 마케터가 코드를 건드리지 않고 운영합니다.</p></div>
+    <div class="card"><h4>사람의 일은 판단과 증거</h4><p>"이 기사는 필요 없다", "이 시간에 또 왔다"를 캡처로 보여주는 것. 원인 추적과 수정은 AI가 합니다.</p></div>
+  </div>
+</section>
+
+<footer>
+  <p>부스터스 커머스 PR팀 뉴스 클리핑 봇 · 제작 기간 2026년 7~9월 · 캡처 표시된 자리는 실습 당시 원본 스크린샷으로 교체해 사용하세요.</p>
+</footer>
+</main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+<script>mermaid.initialize({startOnLoad:true, theme: matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'default'});</script>
+</body>
+</html>

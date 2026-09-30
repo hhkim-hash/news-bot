@@ -1,0 +1,36 @@
+name: 뉴스 브리핑
+
+on:
+  # 매일 오전 9시(KST) = UTC 00:00. GitHub 스케줄은 부하에 따라 늦게 돌 수 있습니다.
+  # 정시가 꼭 필요하면 schedule 두 줄을 지우고 외부 크론으로 workflow_dispatch를 호출하세요 (가이드 09단계).
+  schedule:
+    - cron: '0 0 * * *'
+  workflow_dispatch:   # Actions 탭의 "Run workflow" 버튼
+
+jobs:
+  briefing:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: 코드 체크아웃
+        uses: actions/checkout@v4
+
+      - name: Python 설정
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: 의존성 설치
+        run: pip install -r requirements.txt
+
+      - name: 뉴스 브리핑 실행
+        env:
+          NAVER_CLIENT_ID: ${{ secrets.NAVER_CLIENT_ID }}
+          NAVER_CLIENT_SECRET: ${{ secrets.NAVER_CLIENT_SECRET }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_WEBHOOK_URL_2: ${{ secrets.SLACK_WEBHOOK_URL_2 }}
+          TYPESAFE_API_KEY: ${{ secrets.TYPESAFE_API_KEY }}
+          PYTHONIOENCODING: utf-8
+          PYTHONUTF8: 1
+        run: python boosters_news_briefing.py
