@@ -10,6 +10,24 @@ from html import unescape
 from email.utils import parsedate_to_datetime
 from urllib.parse import quote
 
+
+def _load_dotenv(path: str = ".env") -> None:
+    """로컬 실행용: .env 파일이 있으면 읽어 환경변수로 설정 (Windows/Mac 공통).
+    GitHub Actions에서는 .env가 없으므로 아무 일도 하지 않는다. 이미 설정된 값은 덮어쓰지 않는다."""
+    if not os.path.exists(path):
+        return
+    with open(path, encoding="utf-8") as f:
+        for line in f:
+            line = line.strip()
+            if not line or line.startswith("#") or "=" not in line:
+                continue
+            key, _, value = line.partition("=")
+            if value.strip():
+                os.environ.setdefault(key.strip(), value.strip().strip('"').strip("'"))
+
+
+_load_dotenv()
+
 # ============================================================
 # 환경변수
 # ============================================================

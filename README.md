@@ -33,6 +33,35 @@ jev_news_judge.py                AI 판단 모듈 (선택)
 
 ---
 
+## 🤖 Claude Code로 설정하기 (추천 · 약 20분)
+
+클론만 해서는 자동 발송이 되지 않습니다. **내 GitHub 레포**를 만들고 **키를 등록**해야 GitHub 서버가 매일 실행합니다.
+Claude Code를 쓰면 이 과정을 대화로 안내받으며 끝낼 수 있습니다.
+
+1. 레포를 클론하고, 그 폴더에서 Claude Code를 엽니다.
+   ```bash
+   git clone https://github.com/sycha-maker/ax-news-bot.git
+   ```
+2. Claude에게 이렇게 말합니다: **"뉴스봇 설정 시작"**
+3. Claude가 7단계를 하나씩 진행합니다. 내가 직접 하는 건 로그인·키 발급·Slack 확인뿐입니다.
+
+| 단계 | 내용 | 누가 |
+|---|---|---|
+| 0 | git·GitHub CLI·Python 설치 확인 | Claude (GitHub 로그인만 내가) |
+| 1 | 내 계정에 비공개 레포 만들기 | Claude |
+| 2 | 내 브랜드·경쟁사 키워드 입력 | 내가 답하면 Claude가 수정 |
+| 3 | 네이버 검색 API 키 발급 → `.env`에 입력 | 나 |
+| 4 | Slack 웹훅 발급 → `.env`에 입력 | 나 |
+| 5 | 키를 GitHub Secrets에 등록 | Claude |
+| 6 | 받는 시간 정하기 | 내가 답하면 Claude가 수정 |
+| 7 | 첫 발송 테스트 → Slack 확인 | Claude, 확인은 나 |
+
+키는 채팅창에 붙여넣지 말고 `.env` 파일에 직접 입력하세요. `.env`는 GitHub에 올라가지 않습니다.
+
+Claude Code 없이 직접 하려면 아래 1~5단계를 따르세요.
+
+---
+
 ## 1단계 · 레포 가져오기
 
 GitHub에 로그인한 뒤 이 페이지 오른쪽 위 **Fork** 버튼을 누릅니다. 내 계정에 복사본이 생깁니다.
@@ -136,9 +165,8 @@ Slack 웹훅을 비워두면 결과를 터미널에 출력합니다.
 git clone https://github.com/sycha-maker/ax-news-bot.git
 cd ax-news-bot
 pip install -r requirements.txt
-cp .env.example .env          # .env 에 네이버 키 입력
-set -a; source .env; set +a
-python boosters_news_briefing.py
+cp .env.example .env          # Windows: copy .env.example .env  → .env 에 네이버 키 입력
+python boosters_news_briefing.py   # .env 를 자동으로 읽습니다
 ```
 
 ## (선택) AI 판단 붙이기
