@@ -118,7 +118,7 @@ footer{border-top:1px solid var(--line);padding-top:20px;color:var(--muted);font
 <header class="hero">
   <p class="eyebrow">AX 실습 강의 · 비개발자 마케터용</p>
   <h1>매일 아침 9시, 경쟁사 뉴스가 Slack으로 온다</h1>
-  <p class="lede">부스터스 PR팀이 Claude Code와 함께 만든 뉴스 클리핑 봇의 제작 과정입니다. 네이버·Google News에서 이퀄베리와 경쟁사 기사를 모아, 노이즈를 거르고, 두 Slack 채널로 보냅니다. 코드는 AI가 쓰고 사람은 무엇을 원하는지와 무엇이 틀렸는지를 말합니다.</p>
+  <p class="lede">부스터스 PR팀이 Claude Code와 함께 만든 뉴스 클리핑 봇의 제작 과정입니다. Google News(한국·미국)에서 이퀄베리와 경쟁사 기사를 모아, 노이즈를 거르고, 두 Slack 채널로 보냅니다. 코드는 AI가 쓰고 사람은 무엇을 원하는지와 무엇이 틀렸는지를 말합니다.</p>
   <div class="meta">
     <span class="chip">GitHub Actions</span><span class="chip">Python</span><span class="chip">Naver News API</span><span class="chip">Google News RSS</span><span class="chip">Slack Webhook</span><span class="chip">서버 비용 0원</span>
   </div>
@@ -129,7 +129,7 @@ footer{border-top:1px solid var(--line);padding-top:20px;color:var(--muted);font
   <p class="goal">전체 흐름을 먼저 보여주고 시작합니다. 수강생이 지금 어느 단계에 있는지 이 그림으로 돌아옵니다.</p>
   <pre class="mermaid">
 flowchart LR
-  T["⏰ 매일 09:00 KST<br/>트리거"] --> C["수집<br/>네이버 · Google KR/US · 매체 RSS"]
+  T["⏰ 매일 09:00 KST<br/>트리거"] --> C["수집<br/>Google KR/US · 매체 RSS<br/>(네이버는 선택)"]
   C --> F["필터<br/>24시간 · 제외어 · 차단 도메인"]
   F --> D["중복 제거<br/>제목 유사도 · 매체 등급"]
   D --> J["AI 판단 (선택)<br/>유리/불리 라벨"]
@@ -144,12 +144,12 @@ flowchart LR
 
 <section id="s1">
   <h2><span class="n">01</span>준비물</h2>
-  <p class="goal">계정과 키 4종. 모두 무료로 시작할 수 있습니다.</p>
+  <p class="goal">필수는 GitHub 계정과 Slack 웹훅 두 가지. 뉴스는 Google News에서 키 없이 가져옵니다.</p>
   <div class="table-wrap"><table>
     <thead><tr><th>항목</th><th>어디서</th><th>무엇을 받아오나</th><th>필수</th></tr></thead>
     <tbody>
       <tr><td>GitHub 계정·비공개 레포</td><td>github.com</td><td>코드 저장소 + 매일 자동 실행(Actions)</td><td><span class="sev ok">필수</span></td></tr>
-      <tr><td>네이버 검색 API</td><td>developers.naver.com</td><td><code>Client ID</code>, <code>Client Secret</code></td><td><span class="sev ok">필수</span></td></tr>
+      <tr><td>네이버 검색 API</td><td>developers.naver.com</td><td><code>Client ID</code>, <code>Client Secret</code></td><td><span class="sev warn">선택</span></td></tr>
       <tr><td>Slack 앱 (Incoming Webhook)</td><td>api.slack.com/apps</td><td>채널별 Webhook URL</td><td><span class="sev ok">필수</span></td></tr>
       <tr><td>AI 판단 API 키</td><td>TypeSafe 등</td><td>기사 유리/불리 판단용 키</td><td><span class="sev warn">선택</span></td></tr>
     </tbody>
@@ -178,11 +178,11 @@ jev_news_judge.py                <span class="d">← AI 판단 모듈 (선택)</
     <li><div>왼쪽 <b>Security and quality</b> 아래 <b>Secrets and variables → Actions</b><br><span style="color:var(--muted);font-size:14px">바로가기: <code>github.com/계정/레포/settings/secrets/actions</code></span></div></li>
     <li><div><b>New repository secret</b>으로 아래 이름 그대로 하나씩 등록</div></li>
   </ol>
-  <pre><code>NAVER_CLIENT_ID
-NAVER_CLIENT_SECRET
-SLACK_WEBHOOK_URL       # 채널 1 (#pr_research)
+  <pre><code>SLACK_WEBHOOK_URL       # 채널 1 (#pr_research)
 SLACK_WEBHOOK_URL_2     # 채널 2 (협업채널)
-TYPESAFE_API_KEY        # AI 판단 (선택)</code></pre>
+TYPESAFE_API_KEY        # AI 판단 (선택)
+NAVER_CLIENT_ID         # 네이버 뉴스 (선택 · 개발자센터 무료)
+NAVER_CLIENT_SECRET</code></pre>
   <div class="note"><b>계정 설정과 헷갈리지 않기</b> · 프로필 사진 → Settings는 <b>계정</b> 설정입니다. 시크릿은 <b>레포</b> Settings에 있습니다.</div>
 </section>
 

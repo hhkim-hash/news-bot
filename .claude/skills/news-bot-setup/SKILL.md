@@ -12,7 +12,7 @@ description: 이 레포(AX 뉴스봇)를 클론한 사용자가 "내 계정에�
 
 1. 사용자 계정에 이 코드가 담긴 레포가 있다
 2. `keywords.yml` 맨 위 "내 브랜드"가 사용자 브랜드로 바뀌어 있다
-3. 레포 Secrets에 `NAVER_CLIENT_ID`, `NAVER_CLIENT_SECRET`, `SLACK_WEBHOOK_URL`이 있다
+3. 레포 Secrets에 `SLACK_WEBHOOK_URL`이 있다 (뉴스 수집은 Google News라 키가 필요 없다)
 4. 원하는 시간(KST)으로 스케줄이 설정되어 있다
 5. 수동 실행 1회가 성공했고, 사용자가 Slack에서 메시지를 확인했다
 
@@ -77,23 +77,21 @@ gh repo create <이름> --private --source=. --remote=origin --push
 
 `boosters_news_briefing.py`의 `EXCLUDE_KEYWORDS`에 있는 `정관장`, `레드부스터스`, `LG유플러스`, `LG U+`, `유플러스`, `크리에이터 육성`은 원 제작사 전용 필터다. 사용자 업계와 무관하면 지워도 된다고 알려주고, 원하면 지운다.
 
-## 3/7 · 네이버 키 발급
+## 3/7 · 키 없이 미리보기
 
-사용자에게 안내한다 (직접 해야 함):
-1. https://developers.naver.com/apps/#/register 접속 → 네이버 로그인
-2. 애플리케이션 이름: 아무거나 (예: 뉴스봇)
-3. 사용 API: **검색** 선택
-4. 비로그인 오픈 API 서비스 환경: **WEB 설정**, URL: `http://localhost`
-5. 등록 → `Client ID`, `Client Secret` 확인
+뉴스는 Google News(한국·미국)에서 키 없이 수집한다. 네이버 키는 필요 없다.
 
-그다음 `.env` 파일을 만든다: `.env.example`을 `.env`로 복사한다 (이미 있으면 유지).
-사용자에게: "`.env` 파일을 열어 `NAVER_CLIENT_ID=` 뒤에 Client ID, `NAVER_CLIENT_SECRET=` 뒤에 Secret을 붙여넣고 저장해주세요. 채팅에는 붙여넣지 않으셔도 됩니다."
-- Windows: `notepad .env` / Mac: `open -e .env` 로 열어준다.
-
-저장했다고 하면 **로컬 미리보기**를 1회 실행해 키가 맞는지 확인한다: `python boosters_news_briefing.py`
+`.env` 파일을 만든다: `.env.example`을 `.env`로 복사한다 (이미 있으면 유지).
+그리고 **로컬 미리보기**를 1회 실행해 키워드가 잘 잡히는지 확인한다: `python boosters_news_briefing.py`
 - 출력 마지막에 `----- 미리보기 -----`와 브랜드별 목록이 나오면 성공
-- `[뉴스 수집 오류] ... 401` 이면 키 오타 → 다시 확인 요청
 - 내 브랜드가 "오늘 감지된 기사 없음"이어도 정상임을 알린다 (최근 24시간 기사만 봄)
+- 엉뚱한 기사가 보이면 2단계로 돌아가 키워드를 다듬는다
+
+**네이버 뉴스 (선택)** — 사용자가 네이버 기사도 원할 때만 안내한다.
+- "네이버 클라우드(유료)"가 아니라 **네이버 개발자센터**의 검색 API이며 무료(하루 25,000회)라고 먼저 알린다. 사용자가 유료 화면을 봤다면 다른 서비스에 들어간 것이다.
+- https://developers.naver.com/apps/#/register → 애플리케이션 이름 아무거나 → 사용 API **검색** → 환경 **WEB 설정**, URL `http://localhost` → 등록
+- `.env`의 `NAVER_CLIENT_ID=`, `NAVER_CLIENT_SECRET=` 뒤에 사용자가 직접 붙여넣게 한다 (Windows `notepad .env`, Mac `open -e .env`)
+- 미리보기를 다시 실행해 `[수집 경로] 한국어: 네이버 + Google News KR` 이 나오면 성공. `[뉴스 수집 오류] ... 401` 이면 키 오타.
 
 ## 4/7 · Slack 웹훅 발급
 
@@ -121,7 +119,7 @@ Windows PowerShell:
 ```
 Get-Content .env | Where-Object { $_ -match '^[A-Z0-9_]+=.+' } | Set-Content -Encoding utf8 .env.upload; gh secret set -f .env.upload; Remove-Item .env.upload
 ```
-확인: `gh secret list` → 최소 `NAVER_CLIENT_ID`, `NAVER_CLIENT_SECRET`, `SLACK_WEBHOOK_URL` 3개가 보여야 한다.
+확인: `gh secret list` → 최소 `SLACK_WEBHOOK_URL`이 보여야 한다. (네이버를 추가했다면 `NAVER_CLIENT_ID`, `NAVER_CLIENT_SECRET`도)
 
 `.env`는 `.gitignore`에 있어 GitHub에 올라가지 않는다고 안심시킨다.
 

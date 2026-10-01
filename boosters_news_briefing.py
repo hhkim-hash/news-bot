@@ -137,6 +137,9 @@ def is_excluded(title: str, description: str) -> bool:
 # 네이버 뉴스 수집
 # ============================================================
 def fetch_news(keyword: str, display: int = 5) -> list[dict]:
+    # 선택 기능: 네이버 키가 없으면 건너뛰고 Google News(한국)로만 수집한다
+    if not (NAVER_CLIENT_ID and NAVER_CLIENT_SECRET):
+        return []
     url = "https://openapi.naver.com/v1/search/news.json"
     headers = {
         "X-Naver-Client-Id": NAVER_CLIENT_ID,
@@ -328,6 +331,10 @@ def _add_or_replace(article: dict, global_seen: list[dict], cat_articles: list[d
 
 def collect_by_category(config: dict) -> dict[str, list[dict]]:
     display = config["settings"]["display_per_keyword"]
+    use_naver = bool(NAVER_CLIENT_ID and NAVER_CLIENT_SECRET)
+    # 네이버를 안 쓰면 Google News(한국)에서 2배로 가져와 빈자리를 채운다
+    kr_rss_display = display if use_naver else display * 2
+    print(f"[수집 경로] 한국어: {'네이버 + ' if use_naver else ''}Google News KR · 영어: Google News US")
     dedup   = config["settings"]["dedup_enabled"]
     result  = {}
     global_seen: list[dict] = []
@@ -341,7 +348,7 @@ def collect_by_category(config: dict) -> dict[str, list[dict]]:
                 # 영어 카테고리: 네이버 제외, Google News(US)만
                 fetched = fetch_news_rss(keyword, display, lang="en")
             else:
-                fetched = fetch_news(keyword, display) + fetch_news_rss(keyword, display)
+                fetched = fetch_news(keyword, display) + fetch_news_rss(keyword, kr_rss_display)
             for article in fetched:
                 _add_or_replace(article, global_seen, articles, dedup)
             time.sleep(0.2)

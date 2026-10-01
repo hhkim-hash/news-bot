@@ -6,7 +6,7 @@
 부스터스 커머스 PR팀이 Claude Code와 함께 만든 실제 운영 코드를 누구나 따라 만들 수 있게 정리했습니다.
 
 - 서버·비용 0원 (GitHub Actions 무료 실행)
-- 네이버 뉴스 + Google News(한국/미국) + 전문지 RSS 수집
+- Google News(한국/미국) + 전문지 RSS 수집 · **키 없이 무료** (네이버 뉴스는 선택)
 - 24시간 이내 기사만, 제외어·차단 사이트 필터, 비슷한 기사 중복 제거
 - Slack 채널 2곳 동시 발송
 - (선택) AI가 경쟁사 기사를 "우리에게 유리/불리"로 라벨링
@@ -50,7 +50,7 @@ Claude Code를 쓰면 이 과정을 대화로 안내받으며 끝낼 수 있습�
 | 0 | git·GitHub CLI·Python 설치 확인 | Claude (GitHub 로그인만 내가) |
 | 1 | 내 계정에 비공개 레포 만들기 | Claude |
 | 2 | 내 브랜드·경쟁사 키워드 입력 | 내가 답하면 Claude가 수정 |
-| 3 | 네이버 검색 API 키 발급 → `.env`에 입력 | 나 |
+| 3 | 키 없이 미리보기 실행 (네이버는 선택) | Claude |
 | 4 | Slack 웹훅 발급 → `.env`에 입력 | 나 |
 | 5 | 키를 GitHub Secrets에 등록 | Claude |
 | 6 | 받는 시간 정하기 | 내가 답하면 Claude가 수정 |
@@ -67,11 +67,12 @@ Claude Code 없이 직접 하려면 아래 1~5단계를 따르세요.
 GitHub에 로그인한 뒤 이 페이지 오른쪽 위 **Fork** 버튼을 누릅니다. 내 계정에 복사본이 생깁니다.
 (비공개로 쓰고 싶으면 **Use this template** 또는 새 비공개 레포를 만들어 파일을 올려도 됩니다.)
 
-## 2단계 · 키 3개 준비
+## 2단계 · Slack 웹훅 준비
+
+필수 키는 **Slack 웹훅 하나**입니다. 뉴스는 Google News에서 키 없이 가져옵니다.
 
 | 키 | 어디서 | 걸리는 시간 |
 |---|---|---|
-| 네이버 `Client ID`·`Client Secret` | [네이버 개발자센터](https://developers.naver.com/apps/#/register) → 애플리케이션 등록 → 사용 API **검색** | 3분 |
 | Slack Webhook URL | [api.slack.com/apps](https://api.slack.com/apps) → Create New App → From scratch → **Incoming Webhooks** 켜기 → **Add New Webhook** → 채널 선택 → URL 복사 | 5분 |
 
 > 외부 회사가 만든 Slack Connect 채널에는 우리 웹훅을 붙일 수 없습니다. 우리 워크스페이스에 채널을 새로 만들고 외부 담당자를 초대하세요.
@@ -82,11 +83,10 @@ GitHub에 로그인한 뒤 이 페이지 오른쪽 위 **Fork** 버튼을 누릅
 
 | 이름 | 값 | 필수 |
 |---|---|---|
-| `NAVER_CLIENT_ID` | 네이버 Client ID | ✅ |
-| `NAVER_CLIENT_SECRET` | 네이버 Client Secret | ✅ |
 | `SLACK_WEBHOOK_URL` | Slack Webhook URL | ✅ |
 | `SLACK_WEBHOOK_URL_2` | 두 번째 채널 Webhook | 선택 |
 | `TYPESAFE_API_KEY` | AI 판단 키 | 선택 |
+| `NAVER_CLIENT_ID` · `NAVER_CLIENT_SECRET` | 네이버 검색 API 키 | 선택 (아래 참고) |
 
 키는 코드나 `keywords.yml`에 절대 적지 마세요. 퍼블릭 레포면 누구나 볼 수 있습니다.
 
@@ -165,9 +165,18 @@ Slack 웹훅을 비워두면 결과를 터미널에 출력합니다.
 git clone https://github.com/sycha-maker/ax-news-bot.git
 cd ax-news-bot
 pip install -r requirements.txt
-cp .env.example .env          # Windows: copy .env.example .env  → .env 에 네이버 키 입력
+cp .env.example .env          # Windows: copy .env.example .env  (키 없이도 실행됩니다)
 python boosters_news_briefing.py   # .env 를 자동으로 읽습니다
 ```
+
+## (선택) 네이버 뉴스도 같이 받기
+
+기본 설정은 Google News(한국)로 국내 기사를 수집합니다. 대부분의 언론사 기사가 잡히지만,
+네이버에만 노출되는 기사까지 보고 싶으면 네이버 검색 API를 추가할 수 있습니다.
+
+- **무료입니다.** 결제가 필요한 곳은 "네이버 클라우드 플랫폼"이고, 검색 API는 **네이버 개발자센터**에서 따로 발급합니다 (하루 25,000회 무료).
+- [developers.naver.com/apps/#/register](https://developers.naver.com/apps/#/register) → 애플리케이션 이름 아무거나 → 사용 API **검색** → 환경 **WEB**, URL `http://localhost` → 등록
+- 받은 `Client ID`, `Client Secret`을 Secrets의 `NAVER_CLIENT_ID`, `NAVER_CLIENT_SECRET`에 등록하면 다음 실행부터 자동으로 함께 수집합니다.
 
 ## (선택) AI 판단 붙이기
 
