@@ -26,187 +26,36 @@ categories:
   #   "회사명 + 브랜드명", "브랜드명 + 대표 제품"처럼 두 단어로 묶으세요.
 
   my_brand_1:
-    display: "⭐ 이퀄베리"
-    always_show: true
-    keywords:
-      - "이퀄베리"
-      - "Eqqualberry"
-
-  my_brand_2:
-    display: "⭐ 부스터스"
-    always_show: true
-    keywords:
-      - "부스터스 커머스"
-      - "부스터스 브랜드"
-
-  my_brand_3:
-    display: "⭐ 브랜든"
+    display: "⭐ 브랜든 부스터스"
     always_show: true
     keywords:
       - "부스터스 브랜든"
-      - "브랜든 압축 파우치"
-      - "브랜든 여행가방"
+      - "브랜든 가방"
+      - "브랜든 세이프"
 
-  # ---------- 영미권 PR 모니터링 (예시) ----------
-
-  global_eqqualberry:
-    display: "🇺🇸 Eqqualberry 글로벌 PR"
+  global_brand:
+    display: "🇺🇸 Branden 글로벌 PR"
     lang: en
-    priority: high
     always_show: true
-    max_articles: 10
     keywords:
-      - "eqqualberry"
-      - "Eqqualberry skincare"
-      - "Eqqualberry K-beauty"
+      - "branden bag"
+      - "branden travel"
 
-  global_competitors:
-    display: "🌐 글로벌 경쟁사 (영미권)"
-    lang: en
-    priority: high
+  competitors:
+    display: "🏢 경쟁사"
     competitor: true
-    max_articles: 10
     keywords:
-      - "medicube"
-      - "Dr.Melaxin"
-      - "AUNA skincare"
-      - "Beauty of Joseon"
-      - "COSRX"
-      - "Celimax"
-      - "Laneige"
-      - "SKIN1004"
-      - "Dr.Althea"
-      - "Biodance"
-      - "PURITO"
-      - "\"d'Alba\" skincare"   # 따옴표 없으면 이탈리아 Alba 지역 기사가 잡힘
-      - "Torriden"
-      - "numbuzin"
-      - "Arencia"
-      - "sungboon"
+      - "리드볼트"
+      - "프랑떼"
+      - "코지앤코"
+      - "올리빙"
+      - "생활공작소"
 
-  global_deep:
-    display: "🧭 글로벌 심층 & 트렌드 (영미권)"
-    lang: en
-    priority: high
-    max_articles: 8
+  industry_trend:
+    display: "🔍 업계 트렌드"
     keywords:
-      - "K-Beauty"
-      - "Target beauty"
-      - "Ulta Beauty"
-      - "Olive Young"
-      - "Boots beauty"
-      - "PDRN skincare"
-      - "longevity beauty"
-      - "peptide skincare"
-
-  # ---------- 국내 (예시) ----------
-
-  global_kbeauty:
-    display: "🌏 글로벌 K뷰티 성장 기업"
-    priority: high
-    competitor: true
-    competitor_exclude:      # 브랜드가 아닌 키워드 (기관/인물 등)
-      - "KOTRA K뷰티"
-      - "KYYB"
-      - "노정석"
-    keywords:
-      - "달바글로벌"
-      - "에이피알"
-      - "메디큐브"
-      - "클리오"
-      - "코스알엑스"
-      - "아누아"
-      - "라운드랩"
-      - "토리든"
-      - "바이오던스"
-      - "닥터멜락신"
-      - "닥터엘시아"
-      - "마녀공장"
-      - "비플레인"
-      - "셀리맥스"
-      - "구다이글로벌"
-      - "조선미녀"
-      - "스킨1004"
-      - "티르티르"
-      - "닥터자르트"
-      - "넘버즈인"
-      - "닥터지"
-      - "KOTRA K뷰티"
-      - "KYYB"
-      - "노정석"
-
-  major_beauty:
-    display: "🏢 대형 뷰티 기업"
-    priority: medium
-    keywords:
-      - "아모레퍼시픽"
-      - "LG생활건강"
-      - "토니모리"
-      - "미샤"
-      - "네이처리퍼블릭"
-      - "에이블씨엔씨"
-      - "풀무원건강생활"
-
-  ecommerce_platform:
-    display: "🛒 이커머스 & 플랫폼"
-    priority: high
-    keywords:
-      - "올리브영"
-      - "아마존"
-      - "W컨셉"
-      - "지그재그"
-      - "패션플랫폼"
-      - "29cm"
-      - "이십구센티미터"
-      - "무신사"
-      - "무신사뷰티"
-
-  oem_odm:
-    display: "🏭 OEM/ODM & 제조"
-    priority: medium
-    keywords:
-      - "코스맥스"
-      - "한국콜마"
-      - "코스메카코리아"
-      - "화장품 ODM"
-      - "화장품 OEM"
-
-  startup:
-    display: "🚀 스타트업 & 벤처"
-    priority: medium
-    keywords:
-      - "뷰티 스타트업"
-      - "화장품 스타트업"
-      - "K뷰티 투자"
-      - "화장품 벤처 투자"
-
-  deep_analysis:
-    display: "🔍 심층 분석 & 트렌드"
-    priority: high
-    keywords:
-      - "K뷰티 트렌드"
-      - "K뷰티 전망"
-      - "K뷰티 성장"
-      - "K뷰티 자사몰"
-      - "뷰티 시장 분석"
-      - "화장품 수출 동향"
-      - "K뷰티 해외 진출"
-      - "뷰티 플랫폼 전략"
-
-  beauty_media:
-    display: "📰 뷰티 전문 매체"
-    priority: high
-    keywords: []
-    media_sources:
-      filter_keywords:
-        - "글로벌"
-        - "스킨케어"
-        - "K-뷰티"
-      feeds:
-        - name: "뷰티경제"
-          url: "https://www.beautyeconomy.co.kr/rss/allArticle.xml"
-        - name: "화장품신문(뷰티누리)"
-          url: "https://www.beautynury.com/rss/allArticle.xml"
+      - "도난 방지 가방"
+      - "세이프 가방"
 
 # ============================================================
 # 수집 설정
